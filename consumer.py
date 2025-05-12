@@ -11,7 +11,7 @@ conf = {
 consumer = Consumer(conf)
 
 # Subscribe to the Kafka topic
-topic = 'test'
+topic = 'test_topic'
 consumer.subscribe([topic])
 
 # Poll messages from Kafka
