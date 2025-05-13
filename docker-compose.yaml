@@ -9,6 +9,8 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_SERVERS: zookeeper:2888:3888
+    networks:
+      - myIP
 
   kafka:
     image: confluentinc/cp-kafka
@@ -31,27 +33,38 @@ services:
       KAFKA_JMX_HOSTNAME: localhost
     depends_on:
       - zookeeper
+    networks:
+      - myIP
 
   connect:
-    image: debezium/connect:2.6
+    image: confluentinc/cp-kafka-connect
+    hostname: connect
+    container_name: connect
     depends_on:
       - kafka
     ports:
       - "8083:8083"
     environment:
-      BOOTSTRAP_SERVERS: kafka:29092
-      GROUP_ID: "debezium-connect-cluster"
-      CONFIG_STORAGE_TOPIC: "connect-configs"
-      OFFSET_STORAGE_TOPIC: "connect-offsets"
-      STATUS_STORAGE_TOPIC: "connect-status"
-      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
-      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
+      CONNECT_GROUP_ID: "debezium-connect-cluster"
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
       CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_REST_ADVERTISED_HOST_NAME: "connect"
-      CONNECT_PLUGIN_PATH: /kafka/connect,/kafka/connect/jars
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components,/etc/kafka-connect/jars,/etc/kafka-connect/connectors
+    networks:
+      - myIP
     volumes:
-      - ./connect-jars:/kafka/connect/jars
+      - ./connect-jars:/etc/kafka-connect/jars
+      - ./connectors:/etc/kafka-connect/connectors
+
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
@@ -65,3 +78,9 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: local-connect
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://connect:8083
+    networks:
+      - myIP
+
+networks:
+  myIP:
+    external: true

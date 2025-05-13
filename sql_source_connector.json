@@ -1,22 +1,16 @@
 {
   "name": "sqlserver-source-connector",
   "config": {
-    "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
     "tasks.max": "1",
-    "database.hostname": "10.0.0.4",
-    "database.port": "1433",
-    "database.user": "spark",
-    "database.password": "spark",
-    "database.names": "transaction",
-    "topic.prefix": "fullfillment",
-    "table.include.list": "dbo.transactions",
-    "topic.creation.enable": "true",
-    "topic.creation.default.replication.factor": "1",
-    "topic.creation.default.partitions": "3",
-    "topic.creation.default.cleanup.policy": "compact",
-    "database.encrypt": "false",
-    "schema.history.internal.kafka.bootstrap.servers": "kafka:29092",
-    "schema.history.internal.kafka.topic": "schemahistory.fulfillment",
-    "snapshot.mode": "initial"
+    "connection.url": "jdbc:sqlserver://10.0.0.2:1433;databaseName=Transaction;encrypt=true;trustServerCertificate=true;",
+    "connection.user": "spark",
+    "connection.password": "spark",
+    "table.whitelist": "transactions",
+    "mode": "incrementing",
+    "incrementing.column.name": "id",
+    "topic.prefix": "sqlserver-",
+    "poll.interval.ms": "5000",
+    "validate.non.null": "false"
   }
 }
